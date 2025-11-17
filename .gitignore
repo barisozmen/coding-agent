@@ -1,0 +1,28 @@
+# Environment and secrets
+.env
+.env.local
+
+# Dependencies
+vendor/
+.bundle/
+
+# History and cache
+.coding_agent_history.yml
+*.log
+tmp/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage/
+
+# RuboCop
+.rubocop-*

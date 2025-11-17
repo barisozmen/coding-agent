@@ -1,0 +1,75 @@
+# Beautiful Ruby code style configuration
+# Following community standards with room for elegance
+
+require:
+  - rubocop-minitest
+  - rubocop-rake
+
+AllCops:
+  TargetRubyVersion: 3.2
+  NewCops: enable
+  Exclude:
+    - 'vendor/**/*'
+    - 'tmp/**/*'
+    - 'bin/**/*'
+
+# We optimize for readability and programmer happiness
+Layout/LineLength:
+  Max: 120
+  AllowedPatterns: ['\A#'] # Allow long comments
+
+# Beautiful method definitions
+Metrics/MethodLength:
+  Max: 25
+  CountAsOne: ['array', 'hash', 'heredoc']
+
+# Classes can be rich and expressive
+Metrics/ClassLength:
+  Max: 200
+  CountAsOne: ['array', 'hash', 'heredoc']
+
+# Blocks can be beautiful and long when they tell a story
+Metrics/BlockLength:
+  Max: 50
+  Exclude:
+    - 'test/**/*'
+    - 'Rakefile'
+
+# We embrace Ruby's expressiveness
+Style/Documentation:
+  Enabled: false # Code should be self-documenting, but we don't require formal docs
+
+# Prefer modern Ruby
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: always
+
+# Beautiful string literals
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+# Embrace both styles for beauty
+Style/SymbolArray:
+  Enabled: false
+
+Style/WordArray:
+  Enabled: false
+
+# Allow elegant trailing commas
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: comma
+
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: comma
+
+# Readability over brevity
+Style/GuardClause:
+  Enabled: false
+
+# Allow beautiful rescue modifications
+Style/RescueModifier:
+  Enabled: false
+
+# Trust developers with sharp knives
+Lint/SuppressedException:
+  AllowComments: true

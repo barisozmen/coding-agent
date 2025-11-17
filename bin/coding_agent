@@ -1,0 +1,15 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Add lib to load path
+$LOAD_PATH.unshift File.expand_path("../lib", __dir__)
+
+# Load environment variables from .env if it exists
+require "dotenv/load" if File.exist?(".env")
+
+# Load the beautiful coding agent
+require "coding_agent"
+require "coding_agent/cli"
+
+# Let Thor handle the command-line magic
+CodingAgent::Cli.start(ARGV)

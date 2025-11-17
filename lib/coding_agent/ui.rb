@@ -1,0 +1,192 @@
+# frozen_string_literal: true
+
+require "tty-prompt"
+require "tty-spinner"
+require "tty-table"
+require "tty-box"
+require "tty-command"
+require "pastel"
+
+module CodingAgent
+  # Pretty UI layer using TTY ecosystem
+  # Optimized for programmer happiness with beautiful terminal output
+  class UI
+    attr_reader :prompt, :pastel, :command
+
+    def initialize(out: $stdout, err: $stderr)
+      @prompt  = TTY::Prompt.new(output: out)
+      @pastel  = Pastel.new
+      @command = TTY::Command.new(printer: :null, output: out)
+      @out     = out
+      @err     = err
+    end
+
+    # Beautiful headers for major sections
+    def header(text)
+      box = TTY::Box.frame(
+        width: [text.size + 8, 60].max,
+        height: 3,
+        align: :center,
+        border: :thick,
+        style: {
+          border: { fg: :bright_magenta }
+        }
+      ) { pastel.decorate(text, :bold, :bright_white) }
+      @out.puts box
+    end
+
+    # Informational messages with style
+    def info(text)
+      @out.puts pastel.decorate("  #{text}", :cyan)
+    end
+
+    # Important information in a beautiful box
+    def info_box(text)
+      box = TTY::Box.frame(
+        width: [text.size + 8, 70].max,
+        padding: 1,
+        border: :thick,
+        style: {
+          border: { fg: :bright_blue }
+        }
+      ) { pastel.decorate(text, :bright_blue, :bold) }
+      @out.puts box
+    end
+
+    # Success messages that make you smile
+    def success(text)
+      @out.puts pastel.decorate("  #{text}", :green, :bold)
+    end
+
+    # Errors that are clear but not harsh
+    def error(text)
+      @out.puts pastel.decorate("  #{text}", :red, :bold)
+    end
+
+    # Warnings that catch attention
+    def warning(text)
+      @out.puts pastel.decorate("  #{text}", :yellow)
+    end
+
+    # Spinner for operations that delight
+    def with_spinner(message, delay: 0.08, format: :pulse_2)
+      spinner = TTY::Spinner.new(
+        "[:spinner] #{message}",
+        format: format,
+        interval: delay,
+        output: @out
+      )
+      spinner.auto_spin
+      result = nil
+
+      begin
+        result = yield spinner
+        spinner.success(pastel.decorate("(done)", :green))
+      rescue StandardError => e
+        spinner.error(pastel.decorate("(failed)", :red))
+        raise
+      end
+
+      result
+    end
+
+    # Multiple spinners for concurrent operations
+    def with_multi_spinner(message)
+      multi = TTY::Spinner::Multi.new(
+        "[:spinner] #{message}",
+        format: :pulse_2,
+        output: @out
+      )
+      yield multi
+      multi.auto_spin
+      multi
+    end
+
+    # Pretty table rendering
+    def render_table(header:, rows:, **options)
+      table = TTY::Table.new(header, rows)
+      styled_table = table.render(
+        :unicode,
+        multiline: true,
+        padding: [0, 2, 0, 2],
+        **options
+      ) do |renderer|
+        renderer.border.style = :bright_blue
+      end
+      @out.puts styled_table
+    end
+
+    # Elegant confirmation prompts
+    def confirm?(message, default: false)
+      prompt.yes?(message) { |q| q.default(default) }
+    end
+
+    # Beautiful selections
+    def select(message, choices, **options)
+      prompt.select(message, choices, **options)
+    end
+
+    # Multi-select with elegance
+    def multi_select(message, choices, **options)
+      prompt.multi_select(message, choices, **options)
+    end
+
+    # Get input with style
+    def ask(message, **options)
+      prompt.ask(message, **options)
+    end
+
+    # Masked input for secrets
+    def mask(message, **options)
+      prompt.mask(message, **options)
+    end
+
+    # Display a beautiful progress bar
+    def progress_bar(total, **options)
+      TTY::ProgressBar.new(
+        "[:bar] :percent :eta",
+        total: total,
+        output: @out,
+        **options
+      )
+    end
+
+    # Show the AI thinking with style
+    def ai_thinking
+      frames = %w[⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏]
+      with_spinner(
+        pastel.decorate("AI is thinking...", :cyan, :italic),
+        format: :dots
+      ) { yield }
+    end
+
+    # Display streamed content beautifully
+    def stream_content(&block)
+      @out.print pastel.decorate("  ", :bright_green)
+      block.call
+      @out.puts
+    end
+
+    # Divider for visual separation
+    def divider(char: "─", width: 80, color: :dim)
+      @out.puts pastel.decorate(char * width, color)
+    end
+
+    # Clear the screen elegantly
+    def clear
+      @out.print "\e[H\e[2J"
+    end
+
+    # Display code with syntax awareness (basic)
+    def code_block(code, language: :ruby)
+      box = TTY::Box.frame(
+        padding: 1,
+        border: :thick,
+        style: {
+          border: { fg: :bright_black }
+        }
+      ) { pastel.decorate(code, :bright_white) }
+      @out.puts box
+    end
+  end
+end
