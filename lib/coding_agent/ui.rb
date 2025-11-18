@@ -194,61 +194,46 @@ module CodingAgent
       @out.puts box
     end
 
-    # Display tool execution with beautiful borders
-    # Shows tool name, parameters, and status in an elegant box
-    def tool_execution(tool_name:, params: {}, status: :running)
-      display_tool_box(tool_name, params, status)
-    end
-
-    private
-
-    def display_tool_box(tool_name, params, status)
-      status_icon = get_status_icon(status)
-      header = "#{status_icon} #{pastel.decorate(tool_name)}"
-
-      content = [header] + format_params(params)
-      border_color = get_border_color(status)
+    # Display complete tool execution in a single bordered box
+    # Shows: tool name → outputs → final status
+    def tool_execution_box(tool_name:, outputs: [], status: :success)
+      content_lines = [format_tool_header(tool_name)]
+      content_lines += format_tool_outputs(outputs) unless outputs.empty?
+      content_lines << format_tool_footer(status)
 
       box = TTY::Box.frame(
         padding: [0, 1],
-        # border: :thick,
-        style: { border: { fg: border_color } }
-      ) { content.join("\n") }
+        style: { border: { fg: :bright_black } }
+      ) { content_lines.join("\n") }
 
       @out.puts ""
       @out.puts box
     end
 
-    # def format_tool_name(tool_name)
-    #   tool_name.to_s.split("::").last
-    #            .gsub(/([A-Z])/, ' \1').strip
-    #            .upcase
-    # end
+    private
 
-    def get_status_icon(status)
-      case status
-      when :running then pastel.decorate("▶", :bright_yellow)
-      when :success then pastel.decorate("✓", :bright_green)
-      when :error then pastel.decorate("✗", :bright_red)
-      else pastel.decorate("•", :bright_blue)
+    def format_tool_header(tool_name)
+      simple_name = tool_name.to_s.split("::").last
+      pastel.bold(simple_name)
+    end
+
+    def format_tool_outputs(outputs)
+      outputs.map do |msg|
+        text = msg[:text]
+        case msg[:level]
+        when :success then pastel.green("  #{text}")
+        when :warning then pastel.yellow("  #{text}")
+        when :error then pastel.red("  #{text}")
+        else pastel.dim("  #{text}")
+        end
       end
     end
 
-    def format_params(params)
-      return [] unless params.any?
-
-      params.map do |key, value|
-        formatted_value = value.to_s.length > 60 ? "#{value.to_s[0...60]}..." : value.to_s
-        "  #{pastel.dim(key.to_s)}: #{pastel.bright_white(formatted_value)}"
-      end
-    end
-
-    def get_border_color(status)
+    def format_tool_footer(status)
       case status
-      when :running then :bright_yellow
-      when :success then :bright_green
-      when :error then :bright_red
-      else :bright_blue
+      when :success then pastel.green("✓ Success")
+      when :error then pastel.red("✗ Failed")
+      else pastel.yellow("⚠ Warning")
       end
     end
   end

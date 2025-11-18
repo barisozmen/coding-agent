@@ -36,29 +36,23 @@ module CodingAgent
       def execute(path:, old_str:, new_str:)
         # Validate inputs
         if old_str == new_str && old_str != ""
-          return {
-            error: "old_str and new_str are identical. No changes needed.",
-            hint: "If creating a file, use old_str='' (empty string)",
-          }
+          output.error("old_str and new_str are identical")
+          return { error: "old_str and new_str are identical" }
         end
 
         full_path = safe_path(path)
         file_existed = File.exist?(full_path)
 
-        # Handle file creation (Go implementation pattern)
+        # Handle file creation
         if old_str.empty?
           if file_existed
-            return {
-              error: "Cannot create file - #{path} already exists",
-              hint: "To edit existing file, provide the exact old_str to replace",
-            }
+            output.error("Cannot create - #{path} already exists")
+            return { error: "File already exists" }
           end
 
-          # Create directory structure if needed
           FileUtils.mkdir_p(File.dirname(full_path)) unless File.dirname(full_path) == "."
-
           File.write(full_path, new_str)
-          ui.success("Created #{path} (#{new_str.lines.count} lines)")
+          output.info("Created #{path} (#{new_str.lines.count} lines)")
 
           return {
             path: path,
@@ -70,38 +64,32 @@ module CodingAgent
 
         # Handle file editing
         unless file_existed
-          return {
-            error: "File #{path} does not exist",
-            hint: "To create it, use old_str='' (empty string) with new_str as the full content",
-          }
+          output.error("File #{path} does not exist")
+          return { error: "File does not exist" }
         end
 
         content = File.read(full_path)
 
         unless content.include?(old_str)
-          return {
-            error: "String not found in #{path}",
-            hint: "Ensure old_str matches exactly, including whitespace and newlines",
-            searched_for: old_str.truncate(100),
-          }
+          output.error("String not found in #{path}")
+          return { error: "String not found", searched_for: old_str.truncate(100) }
         end
 
-        # Check for uniqueness (critical for correctness)
         occurrences = content.scan(old_str).length
         if occurrences > 1
+          output.error("old_str appears #{occurrences} times - must be unique")
           return {
-            error: "old_str appears #{occurrences} times in #{path} - must be unique",
-            hint: "Include more surrounding context to make old_str unique in the file",
+            error: "old_str appears #{occurrences} times - must be unique",
+            hint: "Include more surrounding context to make old_str unique",
             occurrences: occurrences,
           }
         end
 
-        # Perform the replacement
         new_content = content.sub(old_str, new_str)
         File.write(full_path, new_content)
 
         lines_delta = new_content.lines.count - content.lines.count
-        ui.success("Edited #{path} (#{'+' if lines_delta >= 0}#{lines_delta} lines)")
+        output.info("Edited #{path} (#{'+' if lines_delta >= 0}#{lines_delta} lines)")
 
         {
           path: path,
@@ -110,9 +98,6 @@ module CodingAgent
           new_length: new_content.length,
           lines_changed: lines_delta,
         }
-      rescue StandardError => e
-        ui.error("Failed to edit #{path}: #{e.message}")
-        { error: e.message, backtrace: e.backtrace.first(2) }
       end
     end
   end

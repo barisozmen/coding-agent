@@ -31,13 +31,12 @@ module CodingAgent
 
       def execute(command:)
         unless should_execute?(command)
-          ui.warning("Command execution cancelled by user")
+          output.warning("Command execution cancelled by user")
           return { error: "User declined to execute command" }
         end
 
-        ui.with_spinner("Running command") do
-          execute_command(command)
-        end
+        output.info("Executing: #{command}")
+        execute_command(command)
       end
 
       private

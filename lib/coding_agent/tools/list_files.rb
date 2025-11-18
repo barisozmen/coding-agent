@@ -26,17 +26,13 @@ module CodingAgent
         full_path = safe_path(path.presence || ".")
 
         unless File.exist?(full_path)
-          return {
-            error: "Path not found: #{path}",
-            hint: "List parent directory first to see what's available",
-          }
+          output.error("Path not found: #{path}")
+          return { error: "Path not found: #{path}" }
         end
 
         unless File.directory?(full_path)
-          return {
-            error: "#{path} is not a directory",
-            hint: "This is a file. Use read_file to view its contents",
-          }
+          output.error("#{path} is not a directory")
+          return { error: "#{path} is not a directory" }
         end
 
         entries = Dir.glob("#{full_path}/*", File::FNM_DOTMATCH)
@@ -44,18 +40,13 @@ module CodingAgent
                      .map { |entry| format_entry(entry, full_path) }
                      .sort
 
-        ui.success("Listed #{entries.size} items in #{path.presence || '.'}")
+        output.info("#{entries.size} items in #{path.presence || 'current workspace'}:")
+        entries.each { |entry| output.info(entry) }
 
         {
           path: path.presence || ".",
           entries: entries,
           count: entries.size,
-        }
-      rescue StandardError => e
-        ui.error("Failed to list #{path}: #{e.message}")
-        {
-          error: e.message,
-          hint: "Check if you have permission to access this directory",
         }
       end
 

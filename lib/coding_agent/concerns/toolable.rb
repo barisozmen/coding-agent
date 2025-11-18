@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/concern"
+require_relative "../tool_output_collector"
 
 module CodingAgent
   module Concerns
@@ -11,7 +12,7 @@ module CodingAgent
       extend ActiveSupport::Concern
 
       included do
-        attr_reader :ui, :workspace_path
+        attr_reader :ui, :workspace_path, :output
       end
 
       class_methods do
@@ -39,6 +40,7 @@ module CodingAgent
       def initialize(ui: UI.new, workspace_path: Configuration.config.workspace_path)
         @ui = ui
         @workspace_path = workspace_path
+        @output = ToolOutputCollector.new
       end
 
       # Safe file operations within workspace
@@ -50,24 +52,24 @@ module CodingAgent
         full_path
       end
 
-      # Override RubyLLM::Tool#call to add beautiful UI display
+      # Override RubyLLM::Tool#call to orchestrate beautiful bordered output
       def call(args)
+        @output = ToolOutputCollector.new
         params = args.transform_keys(&:to_sym)
+        status = :success
 
-        # Show tool execution starting
-        ui.tool_execution(tool_name: self.class.name, params: params, status: :running)
-
-        # Execute the tool
         result = execute(**params)
-
-        # Show success
-        ui.tool_execution(tool_name: self.class.name, params: params, status: :success)
         result
       rescue StandardError => e
-        # Show error
-        ui.tool_execution(tool_name: self.class.name, params: params, status: :error)
-        ui.error("Tool error: #{e.message}")
+        status = :error
+        output.error("#{e.class}: #{e.message}")
         { error: e.message, backtrace: e.backtrace.first(3) }
+      ensure
+        ui.tool_execution_box(
+          tool_name: self.class.name,
+          outputs: output.messages,
+          status: status
+        )
       end
 
       # Log tool usage for debugging

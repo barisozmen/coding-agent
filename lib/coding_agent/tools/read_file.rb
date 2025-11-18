@@ -24,21 +24,25 @@ module CodingAgent
         full_path = safe_path(path)
 
         unless File.exist?(full_path)
+          output.error("File not found: #{path}")
           return {
             error: "File not found: #{path}",
-            hint: "Use list_files to see available files, or check if the path is correct",
+            hint: "Use list_files to see available files",
           }
         end
 
         if File.directory?(full_path)
+          output.error("#{path} is a directory, not a file")
           return {
-            error: "#{path} is a directory, not a file",
-            hint: "Use list_files(path: '#{path}') to see what's inside this directory",
+            error: "#{path} is a directory",
+            hint: "Use list_files(path: '#{path}') to see contents",
           }
         end
 
         content = File.read(full_path)
         lines = content.lines.count
+
+        output.info("Read #{path} (#{lines} lines, #{content.bytesize} bytes)")
 
         {
           path: path,

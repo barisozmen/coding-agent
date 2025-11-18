@@ -31,26 +31,22 @@ module CodingAgent
 
       def execute(operation:, args: "")
         unless ALLOWED_OPERATIONS.include?(operation)
-          return {
-            error: "Operation '#{operation}' not allowed. " \
-                   "Allowed: #{ALLOWED_OPERATIONS.join(', ')}",
-          }
+          output.error("Operation '#{operation}' not allowed")
+          return { error: "Operation not allowed. Allowed: #{ALLOWED_OPERATIONS.join(', ')}" }
         end
 
         command = build_git_command(operation, args)
+        output.info("Running: git #{operation}")
 
         result = execute_git(command)
 
         if result[:success]
-          ui.success("Git #{operation} completed")
+          output.info("Completed successfully")
         else
-          ui.warning("Git #{operation} had issues")
+          output.warning("Command had issues")
         end
 
         result
-      rescue StandardError => e
-        ui.error("Git operation failed: #{e.message}")
-        { error: e.message }
       end
 
       private

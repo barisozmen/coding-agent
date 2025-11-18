@@ -34,20 +34,19 @@ module CodingAgent
       def execute(pattern:, path: ".", file_pattern: "*")
         search_path = safe_path(path)
 
-        return { error: "Search path not found: #{path}" } unless File.exist?(search_path)
+        unless File.exist?(search_path)
+          output.error("Search path not found: #{path}")
+          return { error: "Search path not found: #{path}" }
+        end
 
         matches = find_matches(search_path, pattern, file_pattern)
-
-        ui.success("Found #{matches.size} matches for '#{pattern}'")
+        output.info("Found #{matches.size} matches for '#{pattern}'")
 
         {
           pattern: pattern,
           matches: matches,
           count: matches.size,
         }
-      rescue StandardError => e
-        ui.error("Search failed: #{e.message}")
-        { error: e.message }
       end
 
       private
