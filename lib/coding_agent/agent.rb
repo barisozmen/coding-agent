@@ -126,19 +126,20 @@ module CodingAgent
 
       record_message(role: "user", content: input)
 
-      if interactive
-        puts # Add spacing
-        ai_prompt = ui.pastel.decorate("AI", :bright_green, :bold) +
-                    ui.pastel.decorate(" > ", :bright_white)
-        print ai_prompt
-      end
-
       response = String.new(encoding: Encoding::UTF_8)
       response_metadata = nil
+      first_chunk = true
+      spinner = start_thinking_spinner if interactive
 
       chat.ask(input) do |chunk|
         content = chunk.content
         next if content.nil?
+
+        # Stop spinner and show AI prompt on first content chunk
+        if first_chunk && interactive
+          stop_spinner_and_show_prompt(spinner)
+          first_chunk = false
+        end
 
         content = content.force_encoding(Encoding::UTF_8)
         print content
@@ -148,6 +149,35 @@ module CodingAgent
         response_metadata = chunk if chunk.respond_to?(:usage)
       end
 
+      finish_response(response, response_metadata, interactive)
+    rescue StandardError => e
+      ui.error("Error: #{e.message}")
+      ui.error(e.backtrace.first(3).join("\n")) if Configuration.config.verbose
+      nil
+    end
+
+    def start_thinking_spinner
+      puts # Add spacing
+      spinner = TTY::Spinner.new(
+        "[:spinner] #{ui.pastel.decorate('Thinking...', :bright_green)}",
+        format: :dots,
+        output: $stdout
+      )
+      spinner.auto_spin
+      spinner
+    end
+
+    def stop_spinner_and_show_prompt(spinner)
+      spinner&.stop
+      print "\r" # Clear the spinner line
+      print " " * 80 # Clear any remaining spinner text
+      print "\r" # Return to start of line
+      ai_prompt = ui.pastel.decorate("AI", :bright_green, :bold) +
+                  ui.pastel.decorate(" > ", :bright_white)
+      print ai_prompt
+    end
+
+    def finish_response(response, response_metadata, interactive)
       puts "\n"
       record_message(role: "assistant", content: response)
 
@@ -157,10 +187,6 @@ module CodingAgent
 
       ui.divider if interactive
       response
-    rescue StandardError => e
-      ui.error("Error: #{e.message}")
-      ui.error(e.backtrace.first(3).join("\n")) if Configuration.config.verbose
-      nil
     end
 
     def display_help
