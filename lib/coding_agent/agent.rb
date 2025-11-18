@@ -90,7 +90,9 @@ module CodingAgent
     end
 
     def get_user_input
-      ui.prompt.ask(ui.pastel.decorate("\n", :bright_magenta)) do |q|
+      user_prompt = ui.pastel.decorate("You", :bright_cyan, :bold) +
+                    ui.pastel.decorate(" > ", :bright_white)
+      ui.prompt.ask(user_prompt) do |q|
         q.modify :trim
       end
     end
@@ -125,8 +127,10 @@ module CodingAgent
       record_message(role: "user", content: input)
 
       if interactive
-        ui.divider(char: "─", color: :bright_black)
-        ui.info(ui.pastel.decorate("AI:", :bright_green, :bold))
+        puts # Add spacing
+        ai_prompt = ui.pastel.decorate("AI", :bright_green, :bold) +
+                    ui.pastel.decorate(" > ", :bright_white)
+        print ai_prompt
       end
 
       response = String.new(encoding: Encoding::UTF_8)
