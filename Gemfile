@@ -39,3 +39,5 @@ group :development do
   gem "ruby-lsp", require: false
   gem "typeprof", require: false
 end
+
+gem "rbs", "~> 3.9"

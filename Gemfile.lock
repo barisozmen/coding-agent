@@ -156,6 +156,7 @@ DEPENDENCIES
   minitest-reporters (~> 1.6)
   pastel (~> 0.8)
   rake (~> 13.1)
+  rbs (~> 3.9)
   rubocop (~> 1.60)
   rubocop-minitest (~> 0.34)
   rubocop-rake (~> 0.6)
