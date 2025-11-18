@@ -133,7 +133,10 @@ module CodingAgent
       response_metadata = nil
 
       chat.ask(input) do |chunk|
-        content = chunk.content.force_encoding(Encoding::UTF_8)
+        content = chunk.content
+        next if content.nil?
+
+        content = content.force_encoding(Encoding::UTF_8)
         print content
         response << content
 
