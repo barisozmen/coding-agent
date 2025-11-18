@@ -12,6 +12,7 @@ require_relative "tools/edit_file"
 require_relative "tools/run_shell_command"
 require_relative "tools/search_files"
 require_relative "tools/git_operations"
+require_relative "tools/web_search"
 
 module CodingAgent
   # The heart of the coding agent
@@ -60,6 +61,7 @@ module CodingAgent
         Tools::RunShellCommand,
         Tools::SearchFiles,
         Tools::GitOperations,
+        Tools::WebSearch,
       ].map { |tool_class| tool_class.new(ui: ui) }
     end
 

@@ -26,6 +26,9 @@ gem "dry-configurable", "~> 1.1" # Beautiful configuration DSL
 # Code quality and elegance
 gem "zeitwerk", "~> 2.6" # Code loading convention over configuration
 
+# Search capabilities
+gem "google_search_results", "~> 2.2" # SerpApi integration for web search
+
 group :development, :test do
   gem "minitest", "~> 5.20"
   gem "minitest-reporters", "~> 1.6" # Beautiful test output
