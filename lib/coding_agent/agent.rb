@@ -136,8 +136,8 @@ module CodingAgent
         next if content.nil?
 
         # Stop spinner and show AI prompt on first content chunk
-        if first_chunk && interactive
-          stop_spinner_and_show_prompt(spinner)
+        if first_chunk
+          stop_spinner_and_show_prompt(spinner) if interactive
           first_chunk = false
         end
 
