@@ -26,14 +26,14 @@ module CodingAgent
         unless File.exist?(full_path)
           return {
             error: "File not found: #{path}",
-            hint: "Use list_files to see available files, or check if the path is correct"
+            hint: "Use list_files to see available files, or check if the path is correct",
           }
         end
 
         if File.directory?(full_path)
           return {
             error: "#{path} is a directory, not a file",
-            hint: "Use list_files(path: '#{path}') to see what's inside this directory"
+            hint: "Use list_files(path: '#{path}') to see what's inside this directory",
           }
         end
 
@@ -46,13 +46,13 @@ module CodingAgent
           path: path,
           content: content,
           lines: lines,
-          size: content.bytesize
+          size: content.bytesize,
         }
       rescue StandardError => e
         ui.error("Failed to read #{path}: #{e.message}")
         {
           error: e.message,
-          hint: "Check file permissions or if the file contains binary data"
+          hint: "Check file permissions or if the file contains binary data",
         }
       end
     end

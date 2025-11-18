@@ -38,9 +38,9 @@ class IntegrationTest < Minitest::Test
     result = tool.execute
 
     # Then: Should see all files
-    assert result[:entries].include?("README.md")
-    assert result[:entries].include?("src/")
-    assert result[:entries].include?("test/")
+    assert_includes result[:entries], "README.md"
+    assert_includes result[:entries], "src/"
+    assert_includes result[:entries], "test/"
     assert_equal 3, result[:count]
   end
 
@@ -57,13 +57,13 @@ class IntegrationTest < Minitest::Test
     # Then: Should get the content back
     assert_equal content, result[:content]
     assert_equal 3, result[:lines]
-    assert result[:size] > 0
+    assert_operator result[:size], :>, 0
   end
 
   # Scenario: User wants to create a new file
   def test_creating_new_file
     # Given: No file exists
-    refute File.exist?("new_feature.rb")
+    refute_path_exists "new_feature.rb"
 
     # When: Creating a file using edit_file with empty old_str
     tool = CodingAgent::Tools::EditFile.new(ui: @ui)
@@ -75,7 +75,7 @@ class IntegrationTest < Minitest::Test
     )
 
     # Then: File should be created
-    assert File.exist?("new_feature.rb")
+    assert_path_exists "new_feature.rb"
     assert_equal "created", result[:action]
     assert_equal new_content, File.read("new_feature.rb")
     assert_equal 5, result[:lines]
@@ -113,9 +113,9 @@ class IntegrationTest < Minitest::Test
     result = tool.execute(pattern: "TODO")
 
     # Then: Should find matches
-    assert result[:count] > 0
-    assert result[:matches].any? { |m| m[:file].include?("app.rb") }
-    assert result[:matches].any? { |m| m[:file].include?("lib.rb") }
+    assert_operator result[:count], :>, 0
+    assert(result[:matches].any? { |m| m[:file].include?("app.rb") })
+    assert(result[:matches].any? { |m| m[:file].include?("lib.rb") })
   end
 
   # Scenario: User wants to check git status
@@ -166,6 +166,7 @@ class IntegrationTest < Minitest::Test
     # Step 2: Read it back to verify
     read_tool = CodingAgent::Tools::ReadFile.new(ui: @ui)
     content = read_tool.execute(path: "calculator.rb")
+
     assert_includes content[:content], "Calculator"
     assert_includes content[:content], "def add"
 
@@ -178,12 +179,14 @@ class IntegrationTest < Minitest::Test
 
     # Step 4: Verify the change
     updated = read_tool.execute(path: "calculator.rb")
+
     assert_includes updated[:content], "def subtract"
 
     # Step 5: Search for all methods
     search_tool = CodingAgent::Tools::SearchFiles.new(ui: @ui)
     methods = search_tool.execute(pattern: "def ", file_pattern: "*.rb")
-    assert methods[:count] >= 2
+
+    assert_operator methods[:count], :>=, 2
   end
 
   # Scenario: Error handling - file not found
@@ -230,7 +233,7 @@ class IntegrationTest < Minitest::Test
     )
 
     # Then: Directories and file should be created
-    assert File.exist?("lib/models/user.rb")
+    assert_path_exists "lib/models/user.rb"
     assert_equal "created", result[:action]
   end
 

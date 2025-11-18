@@ -34,9 +34,7 @@ module CodingAgent
       def execute(pattern:, path: ".", file_pattern: "*")
         search_path = safe_path(path)
 
-        unless File.exist?(search_path)
-          return { error: "Search path not found: #{path}" }
-        end
+        return { error: "Search path not found: #{path}" } unless File.exist?(search_path)
 
         matches = find_matches(search_path, pattern, file_pattern)
 
@@ -45,7 +43,7 @@ module CodingAgent
         {
           pattern: pattern,
           matches: matches,
-          count: matches.size
+          count: matches.size,
         }
       rescue StandardError => e
         ui.error("Search failed: #{e.message}")
@@ -65,14 +63,14 @@ module CodingAgent
           next if binary_file?(file)
 
           File.readlines(file).each_with_index do |line, index|
-            if line.match?(regex)
-              matches << {
-                file: file.delete_prefix("#{workspace_path}/"),
-                line_number: index + 1,
-                line: line.strip,
-                context: extract_context(file, index)
-              }
-            end
+            next unless line.match?(regex)
+
+            matches << {
+              file: file.delete_prefix("#{workspace_path}/"),
+              line_number: index + 1,
+              line: line.strip,
+              context: extract_context(file, index),
+            }
           end
         rescue StandardError => e
           # Skip files we can't read

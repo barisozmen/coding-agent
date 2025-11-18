@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "English"
 require "ruby_llm/tool"
 require_relative "../concerns/toolable"
 
@@ -32,7 +33,7 @@ module CodingAgent
         unless ALLOWED_OPERATIONS.include?(operation)
           return {
             error: "Operation '#{operation}' not allowed. " \
-                   "Allowed: #{ALLOWED_OPERATIONS.join(', ')}"
+                   "Allowed: #{ALLOWED_OPERATIONS.join(', ')}",
           }
         end
 
@@ -77,13 +78,13 @@ module CodingAgent
       def execute_git(command)
         Dir.chdir(workspace_path) do
           output = `#{command} 2>&1`
-          exit_code = $?.exitstatus
+          exit_code = $CHILD_STATUS.exitstatus
 
           {
             success: exit_code.zero?,
             exit_code: exit_code,
             output: output,
-            command: command
+            command: command,
           }
         end
       end

@@ -59,7 +59,7 @@ module CodingAgent
         Tools::EditFile,
         Tools::RunShellCommand,
         Tools::SearchFiles,
-        Tools::GitOperations
+        Tools::GitOperations,
       ].map { |tool_class| tool_class.new(ui: ui) }
     end
 
@@ -171,7 +171,7 @@ module CodingAgent
         ["clear", "Clear the screen"],
         ["history", "Show conversation history"],
         ["stats", "Show agent statistics"],
-        ["exit/quit/q", "Exit the agent"]
+        ["exit/quit/q", "Exit the agent"],
       ]
 
       ui.render_table(

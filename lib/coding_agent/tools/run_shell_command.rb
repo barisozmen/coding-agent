@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "English"
 require "ruby_llm/tool"
 require_relative "../concerns/toolable"
 require "active_support/core_ext/array/access"
@@ -11,8 +12,8 @@ module CodingAgent
     class RunShellCommand < RubyLLM::Tool
       include Concerns::Toolable
 
-      description "Execute shell commands to run tests, build projects, check git status, or perform system operations. " \
-                  "Automatically runs safe commands (ls, git status, tests). " \
+      description "Execute shell commands to run tests, build projects, check git status, or perform system " \
+                  "operations. Automatically runs safe commands (ls, git status, tests). " \
                   "Asks user confirmation for potentially destructive operations. " \
                   "Use this when you need to verify changes work, run test suites, or check system state. " \
                   "Returns stdout, stderr, and exit code."
@@ -76,7 +77,7 @@ module CodingAgent
         Dir.chdir(workspace_path) do
           # Use backticks for simple execution, capture output
           stdout_str = `#{command} 2>&1`
-          exit_code = $?.exitstatus
+          exit_code = $CHILD_STATUS.exitstatus
         end
 
         {
@@ -84,7 +85,7 @@ module CodingAgent
           exit_code: exit_code,
           stdout: stdout_str,
           stderr: stderr_str,
-          command: command
+          command: command,
         }
       end
     end

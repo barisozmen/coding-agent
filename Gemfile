@@ -8,23 +8,23 @@ ruby ">= 3.2.0"
 gem "ruby_llm", "~> 1.8.2"
 
 # Beautiful CLI gems - The TTY ecosystem
+gem "pastel", "~> 0.8"         # Terminal output styling with joy
 gem "thor", "~> 1.3"           # Elegant command-line interface framework
+gem "tty-box", "~> 0.7"        # Beautiful boxes for important messages
+gem "tty-command", "~> 0.10"   # Execute commands with elegance
 gem "tty-prompt", "~> 0.23"    # Beautiful interactive prompts
 gem "tty-spinner", "~> 0.9"    # Delightful loading spinners
 gem "tty-table", "~> 0.12"     # Rich table formatting
-gem "tty-box", "~> 0.7"        # Beautiful boxes for important messages
-gem "tty-command", "~> 0.10"   # Execute commands with elegance
-gem "pastel", "~> 0.8"         # Terminal output styling with joy
 
 # ActiveSupport - Rails' sharp knives
 gem "activesupport", "~> 7.1"
 
 # Configuration management
-gem "dotenv", "~> 3.0"         # Environment variable loading
+gem "dotenv", "~> 3.0" # Environment variable loading
 gem "dry-configurable", "~> 1.1" # Beautiful configuration DSL
 
 # Code quality and elegance
-gem "zeitwerk", "~> 2.6"       # Code loading convention over configuration
+gem "zeitwerk", "~> 2.6" # Code loading convention over configuration
 
 group :development, :test do
   gem "minitest", "~> 5.20"

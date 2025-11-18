@@ -20,7 +20,7 @@ class CliTest < Minitest::Test
     stdout, _stderr, status = Open3.capture3(@bin_path, "version")
 
     # Then: Should show version information
-    assert status.success?
+    assert_predicate status, :success?
     assert_includes stdout, "Coding Agent"
     assert_includes stdout, "Ruby"
     assert_includes stdout, "OpenAI"
@@ -32,7 +32,7 @@ class CliTest < Minitest::Test
     stdout, _stderr, status = Open3.capture3(@bin_path, "config")
 
     # Then: Should display configuration
-    assert status.success?
+    assert_predicate status, :success?
     assert_includes stdout, "Configuration"
     assert_includes stdout, "Model"
     assert_includes stdout, "Workspace"
@@ -44,7 +44,7 @@ class CliTest < Minitest::Test
     stdout, _stderr, status = Open3.capture3(@bin_path, "help")
 
     # Then: Should show available commands
-    assert status.success?
+    assert_predicate status, :success?
     assert_includes stdout, "Commands:"
     assert_includes stdout, "chat"
     assert_includes stdout, "ask"
@@ -59,6 +59,7 @@ class CliTest < Minitest::Test
 
     # Then: Should show error message in stderr
     combined_output = stdout + stderr
+
     assert_includes combined_output, "Could not find"
   end
 end

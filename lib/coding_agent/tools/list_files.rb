@@ -28,14 +28,14 @@ module CodingAgent
         unless File.exist?(full_path)
           return {
             error: "Path not found: #{path}",
-            hint: "List parent directory first to see what's available"
+            hint: "List parent directory first to see what's available",
           }
         end
 
         unless File.directory?(full_path)
           return {
             error: "#{path} is not a directory",
-            hint: "This is a file. Use read_file to view its contents"
+            hint: "This is a file. Use read_file to view its contents",
           }
         end
 
@@ -49,13 +49,13 @@ module CodingAgent
         {
           path: path.presence || ".",
           entries: entries,
-          count: entries.size
+          count: entries.size,
         }
       rescue StandardError => e
         ui.error("Failed to list #{path}: #{e.message}")
         {
           error: e.message,
-          hint: "Check if you have permission to access this directory"
+          hint: "Check if you have permission to access this directory",
         }
       end
 

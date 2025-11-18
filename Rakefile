@@ -7,8 +7,8 @@ namespace :app do
   desc "Set up the application"
   task :setup do
     puts "Setting up the application..."
-    system('bundle install')
-    system('cp .env.example .env') unless File.exist?('.env')
+    system("bundle install")
+    system("cp .env.example .env") unless File.exist?(".env")
     puts "✅ Setup complete! Don't forget to edit .env with your configuration."
   end
 end

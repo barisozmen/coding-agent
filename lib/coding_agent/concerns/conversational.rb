@@ -23,7 +23,7 @@ module CodingAgent
         @conversation_history << {
           role: role,
           content: content,
-          timestamp: Time.now
+          timestamp: Time.now,
         }
 
         trim_history

@@ -29,7 +29,7 @@ module CodingAgent
         align: :center,
         border: :thick,
         style: {
-          border: { fg: :bright_magenta }
+          border: { fg: :bright_magenta },
         }
       ) { pastel.decorate(text, :bold, :bright_white) }
       @out.puts box
@@ -47,7 +47,7 @@ module CodingAgent
         padding: 1,
         border: :thick,
         style: {
-          border: { fg: :bright_blue }
+          border: { fg: :bright_blue },
         }
       ) { pastel.decorate(text, :bright_blue, :bold) }
       @out.puts box
@@ -82,7 +82,7 @@ module CodingAgent
       begin
         result = yield spinner
         spinner.success(pastel.decorate("(done)", :green))
-      rescue StandardError => e
+      rescue StandardError
         spinner.error(pastel.decorate("(failed)", :red))
         raise
       end
@@ -122,42 +122,41 @@ module CodingAgent
     end
 
     # Beautiful selections
-    def select(message, choices, **options)
-      prompt.select(message, choices, **options)
+    def select(message, choices, **)
+      prompt.select(message, choices, **)
     end
 
     # Multi-select with elegance
-    def multi_select(message, choices, **options)
-      prompt.multi_select(message, choices, **options)
+    def multi_select(message, choices, **)
+      prompt.multi_select(message, choices, **)
     end
 
     # Get input with style
-    def ask(message, **options)
-      prompt.ask(message, **options)
+    def ask(message, **)
+      prompt.ask(message, **)
     end
 
     # Masked input for secrets
-    def mask(message, **options)
-      prompt.mask(message, **options)
+    def mask(message, **)
+      prompt.mask(message, **)
     end
 
     # Display a beautiful progress bar
-    def progress_bar(total, **options)
+    def progress_bar(total, **)
       TTY::ProgressBar.new(
         "[:bar] :percent :eta",
         total: total,
         output: @out,
-        **options
+        **
       )
     end
 
     # Show the AI thinking with style
-    def ai_thinking
-      frames = %w[⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏]
+    def ai_thinking(&)
       with_spinner(
         pastel.decorate("AI is thinking...", :cyan, :italic),
-        format: :dots
-      ) { yield }
+        format: :dots, &
+      )
     end
 
     # Display streamed content beautifully
@@ -183,7 +182,7 @@ module CodingAgent
         padding: 1,
         border: :thick,
         style: {
-          border: { fg: :bright_black }
+          border: { fg: :bright_black },
         }
       ) { pastel.decorate(code, :bright_white) }
       @out.puts box

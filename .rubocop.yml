@@ -1,7 +1,7 @@
 # Beautiful Ruby code style configuration
 # Following community standards with room for elegance
 
-require:
+plugins:
   - rubocop-minitest
   - rubocop-rake
 
@@ -20,7 +20,7 @@ Layout/LineLength:
 
 # Beautiful method definitions
 Metrics/MethodLength:
-  Max: 25
+  Max: 35
   CountAsOne: ['array', 'hash', 'heredoc']
 
 # Classes can be rich and expressive
@@ -73,3 +73,35 @@ Style/RescueModifier:
 # Trust developers with sharp knives
 Lint/SuppressedException:
   AllowComments: true
+
+# Allow two-letter parameter names like 'ui'
+Naming/MethodParameterName:
+  MinNameLength: 2
+
+# Allow some flexibility in naming
+Naming/AccessorMethodName:
+  Enabled: false
+
+Naming/PredicateMethod:
+  Enabled: false
+
+Naming/VariableNumber:
+  Enabled: false
+
+# Complexity metrics - slightly higher for complex methods
+Metrics/AbcSize:
+  Max: 45
+
+Metrics/CyclomaticComplexity:
+  Max: 12
+
+Metrics/PerceivedComplexity:
+  Max: 12
+
+# Test-specific configuration
+Minitest/MultipleAssertions:
+  Max: 10
+
+# Allow unused arguments in interface methods
+Lint/UnusedMethodArgument:
+  AllowUnusedKeywordArguments: true

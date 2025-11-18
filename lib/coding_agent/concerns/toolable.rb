@@ -45,9 +45,7 @@ module CodingAgent
       def safe_path(path)
         full_path = File.expand_path(path, workspace_path)
 
-        unless full_path.start_with?(workspace_path)
-          raise SecurityError, "Path #{path} is outside workspace"
-        end
+        raise SecurityError, "Path #{path} is outside workspace" unless full_path.start_with?(workspace_path)
 
         full_path
       end

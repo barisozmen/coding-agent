@@ -11,19 +11,21 @@ Minitest::Reporters.use! [
   Minitest::Reporters::SpecReporter.new(color: true),
 ]
 
-class Minitest::Test
-  # Helper to create a test UI with captured output
-  def setup
-    @stdout = StringIO.new
-    @stderr = StringIO.new
-    @ui = CodingAgent::UI.new(out: @stdout, err: @stderr)
-  end
+module Minitest
+  class Test
+    # Helper to create a test UI with captured output
+    def setup
+      @stdout = StringIO.new
+      @stderr = StringIO.new
+      @ui = CodingAgent::UI.new(out: @stdout, err: @stderr)
+    end
 
-  def stdout_output
-    @stdout.string
-  end
+    def stdout_output
+      @stdout.string
+    end
 
-  def stderr_output
-    @stderr.string
+    def stderr_output
+      @stderr.string
+    end
   end
 end
