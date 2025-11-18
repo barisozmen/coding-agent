@@ -129,11 +129,11 @@ module CodingAgent
         ui.info(ui.pastel.decorate("AI:", :bright_green, :bold))
       end
 
-      response = ""
+      response = String.new(encoding: Encoding::UTF_8)
       response_metadata = nil
 
       chat.ask(input) do |chunk|
-        content = chunk.content
+        content = chunk.content.force_encoding(Encoding::UTF_8)
         print content
         response << content
 

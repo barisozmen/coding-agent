@@ -89,6 +89,50 @@ module CodingAgent
       end
     end
 
+    desc "diagnose", "Run diagnostics to verify configuration and API connectivity"
+    long_desc <<~DESC
+      Run comprehensive diagnostics to check:
+      - Environment variables and configuration
+      - OpenAI API key validity
+      - Network connectivity to OpenAI API
+      - Basic LLM functionality
+
+      This command helps troubleshoot setup issues.
+    DESC
+    def diagnose
+      @ui.header("Running Diagnostics")
+
+      # Check 1: Configuration
+      @ui.info("\n1. Checking configuration...")
+      if Configuration.valid?
+        @ui.success("   ✓ Configuration is valid")
+        api_key_masked = Configuration.config.OPENAI_API_KEY.to_s[0..7] + "..." +
+                        Configuration.config.OPENAI_API_KEY.to_s[-4..-1]
+        @ui.info("   API Key: #{api_key_masked}")
+      else
+        @ui.error("   ✗ Configuration has issues:")
+        Configuration.validation_errors.each do |error|
+          @ui.error("     - #{error}")
+        end
+        return
+      end
+
+      # Check 2: Workspace
+      @ui.info("\n2. Checking workspace...")
+      if Dir.exist?(Configuration.config.workspace_path)
+        @ui.success("   ✓ Workspace directory exists: #{Configuration.config.workspace_path}")
+      else
+        @ui.error("   ✗ Workspace directory not found: #{Configuration.config.workspace_path}")
+      end
+
+      # Check 3: OpenAI API Connection
+      @ui.info("\n3. Testing OpenAI API connection...")
+      test_openai_connection
+
+      @ui.divider
+      @ui.success("\nDiagnostics complete!")
+    end
+
     desc "setup", "Interactive setup wizard"
     long_desc <<~DESC
       Run an interactive setup wizard to configure the coding agent.
@@ -180,6 +224,55 @@ module CodingAgent
       Configuration.config.verbose = choices.include?(:verbose)
 
       @ui.success("Preferences saved!")
+    end
+
+    def test_openai_connection
+      require "ruby_llm"
+
+      begin
+        @ui.info("   Testing connection...")
+
+        # Create a minimal chat instance
+        chat = RubyLLM.chat
+
+        # Make a simple test request
+        response = String.new(encoding: Encoding::UTF_8)
+        chat.ask("Say 'hello' in one word") do |chunk|
+          content = chunk.content.force_encoding(Encoding::UTF_8)
+          response << content
+        end
+
+        if response.length.positive?
+          @ui.success("   ✓ Successfully connected to OpenAI API")
+          @ui.info("   Model: #{Configuration.config.default_model}")
+          @ui.info("   Test response: #{response.strip}")
+          true
+        else
+          @ui.error("   ✗ API returned empty response")
+          false
+        end
+      rescue StandardError => e
+        @ui.error("   ✗ Failed to connect to OpenAI API")
+        @ui.error("   Error: #{e.message}")
+
+        # Provide helpful suggestions based on error type
+        case e.message
+        when /API key/i, /authentication/i, /401/
+          @ui.warning("\n   Suggestion: Check your OPENAI_API_KEY in .env file")
+        when /model/i, /404/
+          @ui.warning("\n   Suggestion: The model '#{Configuration.config.default_model}' may not be available")
+          @ui.warning("   Try setting DEFAULT_MODEL to 'gpt-4' or 'gpt-3.5-turbo' in .env")
+        when /network/i, /connection/i, /timeout/i
+          @ui.warning("\n   Suggestion: Check your internet connection")
+        when /rate limit/i, /429/
+          @ui.warning("\n   Suggestion: You've hit the API rate limit. Wait a moment and try again")
+        end
+
+        @ui.info("\n   Full error details:") if Configuration.config.verbose
+        @ui.error("   #{e.class}: #{e.message}") if Configuration.config.verbose
+        @ui.error("   #{e.backtrace.first(5).join("\n   ")}") if Configuration.config.verbose
+        false
+      end
     end
   end
 end
