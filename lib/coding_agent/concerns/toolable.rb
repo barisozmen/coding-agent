@@ -50,10 +50,22 @@ module CodingAgent
         full_path
       end
 
-      # Wrap execution with beautiful error handling
-      def safe_execute(**params)
-        execute(**params)
+      # Override RubyLLM::Tool#call to add beautiful UI display
+      def call(args)
+        params = args.transform_keys(&:to_sym)
+
+        # Show tool execution starting
+        ui.tool_execution(tool_name: self.class.name, params: params, status: :running)
+
+        # Execute the tool
+        result = execute(**params)
+
+        # Show success
+        ui.tool_execution(tool_name: self.class.name, params: params, status: :success)
+        result
       rescue StandardError => e
+        # Show error
+        ui.tool_execution(tool_name: self.class.name, params: params, status: :error)
         ui.error("Tool error: #{e.message}")
         { error: e.message, backtrace: e.backtrace.first(3) }
       end

@@ -35,22 +35,9 @@ module CodingAgent
           return { error: "User declined to execute command" }
         end
 
-        ui.info("Executing: #{command}")
-
-        result = ui.with_spinner("Running command") do
+        ui.with_spinner("Running command") do
           execute_command(command)
         end
-
-        if result[:success]
-          ui.success("Command completed successfully")
-        else
-          ui.error("Command failed with exit code #{result[:exit_code]}")
-        end
-
-        result
-      rescue StandardError => e
-        ui.error("Failed to execute command: #{e.message}")
-        { error: e.message }
       end
 
       private

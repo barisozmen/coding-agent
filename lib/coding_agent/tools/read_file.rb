@@ -40,19 +40,11 @@ module CodingAgent
         content = File.read(full_path)
         lines = content.lines.count
 
-        ui.success("Read #{path} (#{lines} lines)")
-
         {
           path: path,
           content: content,
           lines: lines,
           size: content.bytesize,
-        }
-      rescue StandardError => e
-        ui.error("Failed to read #{path}: #{e.message}")
-        {
-          error: e.message,
-          hint: "Check file permissions or if the file contains binary data",
         }
       end
     end
