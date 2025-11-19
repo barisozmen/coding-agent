@@ -6,6 +6,8 @@ require "yaml"
 require_relative "ui"
 require_relative "configuration"
 require_relative "concerns/conversational"
+require_relative "tool_registry"
+require_relative "token_tracker"
 require_relative "tools/read_file"
 require_relative "tools/list_files"
 require_relative "tools/edit_file"
@@ -20,13 +22,18 @@ module CodingAgent
   class Agent
     include Concerns::Conversational
 
-    attr_reader :chat, :ui, :tools, :token_usage
+    # Constants for display configuration
+    SPINNER_CLEAR_WIDTH = 80
+    HISTORY_DISPLAY_LIMIT = 5
+    HISTORY_DIVIDER_WIDTH = 60
+
+    attr_reader :chat, :ui, :tools, :token_tracker
 
     def initialize(ui: UI.new)
       @ui = ui
       @tools = build_tools
       @chat = configure_chat
-      @token_usage = { input: 0, output: 0, total: 0 }
+      @token_tracker = TokenTracker.new
       initialize_conversation
       setup_system_prompt
     end
@@ -54,15 +61,7 @@ module CodingAgent
     private
 
     def build_tools
-      [
-        Tools::ReadFile,
-        Tools::ListFiles,
-        Tools::EditFile,
-        Tools::RunShellCommand,
-        Tools::SearchFiles,
-        Tools::GitOperations,
-        Tools::WebSearch,
-      ].map { |tool_class| tool_class.new(ui: ui) }
+      ToolRegistry.all_tools.map { |tool_class| tool_class.new(ui: ui) }
     end
 
     def configure_chat
@@ -172,7 +171,7 @@ module CodingAgent
     def stop_spinner_and_show_prompt(spinner)
       spinner&.stop
       print "\r" # Clear the spinner line
-      print " " * 80 # Clear any remaining spinner text
+      print " " * SPINNER_CLEAR_WIDTH # Clear any remaining spinner text
       print "\r" # Return to start of line
       ai_prompt = ui.pastel.decorate("AI", :bright_green, :bold) +
                   ui.pastel.decorate(" > ", :bright_white)
@@ -184,7 +183,7 @@ module CodingAgent
       record_message(role: "assistant", content: response)
 
       # Track token usage if available
-      update_token_usage(response_metadata) if response_metadata
+      token_tracker.update(response_metadata) if response_metadata
       display_token_usage if interactive && Configuration.config.show_token_usage
 
       ui.divider if interactive
@@ -216,12 +215,12 @@ module CodingAgent
         return
       end
 
-      conversation_history.last(5).each do |msg|
+      conversation_history.last(HISTORY_DISPLAY_LIMIT).each do |msg|
         role_color = msg[:role] == "user" ? :bright_cyan : :bright_green
         ui.info(ui.pastel.decorate("#{msg[:role].capitalize}:", role_color, :bold))
         ui.info("  #{msg[:content].truncate(200)}")
         ui.info("  #{ui.pastel.dim(msg[:timestamp].strftime('%Y-%m-%d %H:%M:%S'))}")
-        ui.divider(width: 60, color: :dim)
+        ui.divider(width: HISTORY_DIVIDER_WIDTH, color: :dim)
       end
     end
 
@@ -234,9 +233,9 @@ module CodingAgent
         ["Agent messages", conversation_history.count { |m| m[:role] == "assistant" }],
         ["Tools available", tools.size],
         ["Workspace", Configuration.config.workspace_path],
-        ["Total tokens", token_usage[:total]],
-        ["Input tokens", token_usage[:input]],
-        ["Output tokens", token_usage[:output]],
+        ["Total tokens", token_tracker.usage[:total]],
+        ["Input tokens", token_tracker.usage[:input]],
+        ["Output tokens", token_tracker.usage[:output]],
       ]
 
       ui.render_table(
@@ -249,24 +248,13 @@ module CodingAgent
       ui.divider
       ui.success("Thank you for using Coding Agent. Happy coding!")
 
-      return unless token_usage[:total].positive?
+      return unless token_tracker.any?
 
-      token_summary = "Session tokens: #{token_usage[:total]} " \
-                      "(in: #{token_usage[:input]}, out: #{token_usage[:output]})"
-      ui.info(ui.pastel.dim(token_summary))
-    end
-
-    def update_token_usage(metadata)
-      return unless metadata.respond_to?(:usage)
-
-      usage = metadata.usage
-      @token_usage[:input] += usage.input_tokens if usage.respond_to?(:input_tokens)
-      @token_usage[:output] += usage.output_tokens if usage.respond_to?(:output_tokens)
-      @token_usage[:total] = @token_usage[:input] + @token_usage[:output]
+      ui.info(ui.pastel.dim(token_tracker.session_summary))
     end
 
     def display_token_usage
-      ui.info(ui.pastel.dim("Tokens: #{token_usage[:total]} total (↑#{token_usage[:input]} ↓#{token_usage[:output]})"))
+      ui.info(ui.pastel.dim(token_tracker.inline_summary))
     end
 
     def setup_system_prompt
